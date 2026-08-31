@@ -63,9 +63,6 @@ export default function RoomPage() {
     onPlay: () => player.handlePlayEvent(),
     onPause: () => player.handlePauseEvent(),
     onTrackEnd: () => {
-      console.log(
-        `[Page] onTrackEnd called, nowPlaying="${player.nowPlaying?.name}" videoId=${player.nowPlaying?.videoId} playerState=${player.playerState}`,
-      );
       player.setPlayerState("ended");
     },
   });
@@ -212,9 +209,6 @@ export default function RoomPage() {
           ? queue[currentIdx + 1]
           : queue[0];
       if (nextTrack && nextTrack.videoId !== nowPlaying?.videoId) {
-        console.log(
-          `[Page] auto-prefetch nextTrack="${nextTrack.name}" videoId=${nextTrack.videoId} mode=${engine.mode}`,
-        );
         engine.prefetchNextTrack(nextTrack);
       }
     }
@@ -266,7 +260,7 @@ export default function RoomPage() {
         });
         setTimeout(() => setQueueToast(null), 4000);
       })
-      .catch((err) => console.error("Failed to auto-queue playlist:", err))
+      .catch(() => {})
       .finally(() => {
         router.replace(`/room/${code}`);
       });
@@ -419,32 +413,23 @@ export default function RoomPage() {
   }, [joined, playback, player.nowPlaying?.videoId, canControlPlayback]);
 
   const maybeAdvanceQueue = useCallback(() => {
-    console.log(
-      `[Page] maybeAdvanceQueue ENTER canControl=${canControlPlaybackRef.current} joined=${joined} queue.length=${queue.length} playerState=${playerRef_fix.current.playerState} activeTrack="${playerRef_fix.current.nowPlaying?.name}"`,
-    );
     if (!canControlPlaybackRef.current || !joined) return;
     const p = playerRef_fix.current;
     const activeTrack = p.nowPlaying;
     if (!activeTrack) {
-      console.log(`[Page] maybeAdvanceQueue: no activeTrack -> return`);
       return;
     }
 
     const currentQueueTrack = queue[0];
     if (!currentQueueTrack) {
-      console.log(`[Page] maybeAdvanceQueue: queue empty -> return`);
       return;
     }
 
     const activeKey = activeTrack.videoId || activeTrack.id;
     if (!activeKey || queueAdvanceLockRef.current === activeKey) {
-      console.log(
-        `[Page] maybeAdvanceQueue: locked (key=${activeKey} lock=${queueAdvanceLockRef.current}) -> return`,
-      );
       return;
     }
     queueAdvanceLockRef.current = activeKey;
-    console.log(`[Page] maybeAdvanceQueue: lock set to ${activeKey}`);
 
     sendTrackEnded(
       activeTrack.duration_ms ? activeTrack.duration_ms / 1000 : 0,
@@ -453,9 +438,6 @@ export default function RoomPage() {
     const isCurrentQueueTrack =
       currentQueueTrack.videoId === activeTrack.videoId ||
       currentQueueTrack.id === activeTrack.id;
-    console.log(
-      `[Page] maybeAdvanceQueue: isCurrentQueueTrack=${isCurrentQueueTrack} repeatMode=${playbackMode.repeatMode} activeKey=${activeKey} queue[0]="${currentQueueTrack.name}"`,
-    );
 
     if (isCurrentQueueTrack) {
       if (playbackMode.repeatMode === "one") {
@@ -571,9 +553,7 @@ export default function RoomPage() {
   ]);
 
   useEffect(() => {
-    console.log(`[Page] playerState changed to "${player.playerState}"`);
     if (player.playerState === "ended") {
-      console.log(`[Page] playerState=ended -> call maybeAdvanceQueue`);
       maybeAdvanceQueue();
     }
   }, [maybeAdvanceQueue, player.playerState]);
@@ -627,9 +607,6 @@ export default function RoomPage() {
         ? player.nowPlaying.duration_ms / 1000
         : 0;
       if (dur > 0 && ct >= Math.max(dur - 2, 0)) {
-        console.log(
-          `[Page] near-end interval triggered maybeAdvanceQueue (ct=${ct.toFixed(1)}, dur=${dur.toFixed(1)})`,
-        );
         maybeAdvanceQueue();
       }
     }, 1000);

@@ -35,7 +35,6 @@ export function PlaylistsProvider({ children }: { children: React.ReactNode }) {
         setLikedTrackIds(new Set(data.ids));
       }
     } catch (err) {
-      console.error("Failed to fetch liked track IDs:", err);
     } finally {
       setLoading(false);
     }
@@ -91,7 +90,6 @@ export function PlaylistsProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch (err) {
-      console.error("Failed to toggle like on server, rolling back:", err);
       refreshLikedIds();
     }
   }, [refreshLikedIds]);

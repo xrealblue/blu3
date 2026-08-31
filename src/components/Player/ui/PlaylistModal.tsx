@@ -89,7 +89,6 @@ export function PlaylistModal({
         }
       }
     } catch (err) {
-      console.error("Failed to fetch liked info:", err);
     }
   }
 

@@ -95,6 +95,11 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="application-name" content="Blu3" />
         <script
+          dangerouslySetInnerHTML={{
+            __html: `console.log("%cBlu3 is developed by bluwwi", "font-size:26px;font-weight:500;color:#ABD2FA;padding:4px 8px;");`,
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({

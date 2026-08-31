@@ -28,7 +28,6 @@ export function useSearch() {
       setResults(data.tracks ?? []);
     } catch (err) {
       setSearchError("Search failed. Is the backend running?");
-      console.error("Search error:", err);
     } finally {
       setIsSearching(false);
     }

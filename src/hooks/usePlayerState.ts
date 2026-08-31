@@ -161,7 +161,6 @@ export function usePlayerState(): UsePlayerStateReturn {
   }, []);
 
   const handleError = useCallback((e: any) => {
-    console.error("[Audio] Error:", e);
     setError(`Player error`);
     setPlayerState("error");
   }, []);

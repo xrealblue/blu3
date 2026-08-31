@@ -129,7 +129,6 @@ export default function BrowsePage() {
       });
       if (res.ok) removeRoom(room.id);
     } catch (err) {
-      console.error("Failed to delete room:", err);
     }
   };
 
@@ -144,7 +143,6 @@ export default function BrowsePage() {
       });
       if (res.ok) removeRoom(room.id);
     } catch (err) {
-      console.error("Failed to leave room:", err);
     }
   };
 

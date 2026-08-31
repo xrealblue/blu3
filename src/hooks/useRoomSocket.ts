@@ -232,7 +232,6 @@ export function useRoomSocket({
       reconnectTimerRef.current = setTimeout(connectWs, delay);
     };
     ws.onerror = (e) => {
-      console.error("WS error:", e);
     };
     ws.onmessage = (event) => {
       let msg: RoomSocketMessage;

@@ -184,7 +184,6 @@ export function SquarePlayer({
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("[Download] failed:", err);
       setDownloadError(true);
       setTimeout(() => setDownloadError(false), 3000);
     } finally {

@@ -124,7 +124,6 @@ export function QueueAndHistory({
         });
       }
     } catch (err) {
-      console.error("Failed to queue playlist:", err);
     }
   };
 
