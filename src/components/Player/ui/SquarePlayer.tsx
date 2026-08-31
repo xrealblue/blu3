@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Track } from "@/utils/types";
 import { fmtSec } from "@/utils/formatters";
 import Image from "next/image";
 import { Icon } from "@/hooks/useIcon";
 import { Slider } from "@/components/ui/slider";
 import { Profile } from "@/components/Profile";
-import { GitBranchIcon, XLogoIcon } from "@phosphor-icons/react";
+import { GitBranchIcon, XLogoIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 
 function hashStr(s: string): number {
   let h = 0;
@@ -142,6 +142,32 @@ export function SquarePlayer({
   const morphTRef = useRef(1);
   const lastTsRef = useRef<number | null>(null);
   const scrollOffsetRef = useRef(0);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    if (!track?.videoId || downloading) return;
+    const token = typeof window !== "undefined" ? localStorage.getItem("blu3_token") : null;
+    if (!token) return;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    setDownloading(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/audio/${track.videoId}?token=${token}`);
+      if (!res.ok) throw new Error("Failed to fetch audio");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${track.name ?? "track"} - ${track.artists?.map((a) => a.name).join(", ") ?? "blu3"}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("[Download] failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (hideWaves) return;
@@ -399,7 +425,20 @@ export function SquarePlayer({
           )}
         </div>
       </div>
-      <div className="w-full pt-6 flex justify-end -ml-4 sm:-ml-1 -mt-4  ">
+      <div className="w-full pt-6 flex justify-between items-center -ml-4 sm:-ml-1 -mt-4 px-4 sm:px-1">
+        <div className="flex gap-2 items-center">
+          {track?.videoId && (
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="hover:scale-110 transition-all duration-300 text-white/80 hover:text-white disabled:opacity-50 cursor-pointer"
+              aria-label="Download"
+              title="Download"
+            >
+              <DownloadSimpleIcon size={22} weight="regular" />
+            </button>
+          )}
+        </div>
         <div className="flex gap-2 items-center">
           <a
             href="https://github.com/bluwwi/blu3"
