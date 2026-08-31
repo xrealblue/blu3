@@ -155,7 +155,7 @@ export function SquarePlayer({
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       headers["Authorization"] = `Bearer ${token}`;
-      const resolveRes = await fetch(`${apiUrl}/api/resolve`, {
+      const resolveRes = await fetch(`${apiUrl}/api/resolve-download`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -165,7 +165,11 @@ export function SquarePlayer({
           duration: track.duration_ms,
         }),
       });
-      if (!resolveRes.ok) throw new Error("Resolve failed");
+      if (!resolveRes.ok) {
+        setDownloadError(true);
+        setTimeout(() => setDownloadError(false), 3000);
+        return;
+      }
       const resolveData = await resolveRes.json();
       if (!resolveData.audioUrl) {
         setDownloadError(true);
