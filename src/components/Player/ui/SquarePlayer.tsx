@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Icon } from "@/hooks/useIcon";
 import { Slider } from "@/components/ui/slider";
 import { Profile } from "@/components/Profile";
-import { GitBranchIcon, XLogoIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
+import { GitBranchIcon, XLogoIcon, FileArrowDownIcon } from "@phosphor-icons/react";
 
 function hashStr(s: string): number {
   let h = 0;
@@ -143,6 +143,7 @@ export function SquarePlayer({
   const lastTsRef = useRef<number | null>(null);
   const scrollOffsetRef = useRef(0);
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
 
   const handleDownload = async () => {
     if (!track?.videoId || downloading) return;
@@ -150,7 +151,27 @@ export function SquarePlayer({
     if (!token) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     setDownloading(true);
+    setDownloadError(false);
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      headers["Authorization"] = `Bearer ${token}`;
+      const resolveRes = await fetch(`${apiUrl}/api/resolve`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          videoId: track.videoId,
+          name: track.name,
+          artists: track.artists?.map((a) => a.name).join(", "),
+          duration: track.duration_ms,
+        }),
+      });
+      if (!resolveRes.ok) throw new Error("Resolve failed");
+      const resolveData = await resolveRes.json();
+      if (!resolveData.audioUrl) {
+        setDownloadError(true);
+        setTimeout(() => setDownloadError(false), 3000);
+        return;
+      }
       const res = await fetch(`${apiUrl}/api/audio/${track.videoId}?token=${token}`);
       if (!res.ok) throw new Error("Failed to fetch audio");
       const blob = await res.blob();
@@ -164,6 +185,8 @@ export function SquarePlayer({
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("[Download] failed:", err);
+      setDownloadError(true);
+      setTimeout(() => setDownloadError(false), 3000);
     } finally {
       setDownloading(false);
     }
@@ -431,11 +454,16 @@ export function SquarePlayer({
             <button
               onClick={handleDownload}
               disabled={downloading}
-              className="hover:scale-110 transition-all duration-300 text-white/80 hover:text-white disabled:opacity-50 cursor-pointer"
+              className={`flex gap-1 items-center text-xs transition-all duration-300 disabled:opacity-50 cursor-pointer ${
+                downloadError
+                  ? "text-red-400"
+                  : "text-white/80 hover:text-white"
+              }`}
               aria-label="Download"
-              title="Download"
+              title={downloadError ? "Download not available for this track" : "Download"}
             >
-              <DownloadSimpleIcon size={22} weight="regular" />
+              <FileArrowDownIcon size={22} weight="regular" />
+              {downloading ? "Downloading..." : downloadError ? "Unavailable" : "Download"}
             </button>
           )}
         </div>
